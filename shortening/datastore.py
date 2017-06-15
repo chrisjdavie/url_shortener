@@ -39,7 +39,7 @@ class DatabaseDatastore:
         return self
 
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, *args):
 
         self.session.close()
 
