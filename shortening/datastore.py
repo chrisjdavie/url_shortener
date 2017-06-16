@@ -9,6 +9,7 @@ from sqlalchemy.orm.exc import FlushError
 Base = declarative_base()
 
 class Url(Base):
+    """ Url shortened_url to full_url table """
     __tablename__ = "url"
     
     shortened_url = Column(String(20), primary_key=True)
@@ -26,6 +27,7 @@ class MissingUrlError(ValueError):
     pass
 
 class DatabaseDatastore:
+    """ A database datastore for the key-value pairs """
 
     def __init__(self, engine):
 
@@ -45,6 +47,8 @@ class DatabaseDatastore:
 
 
     def shortened_url_from_full_url(self, full_url):
+        """ get a shortened url from a full url, for checking if a url has
+        already been shortened """
         a_url = self.session.query(Url).filter_by(full_url=full_url).first()
         if a_url:
             return a_url.shortened_url
@@ -53,6 +57,7 @@ class DatabaseDatastore:
 
 
     def full_url_from_shortened_url(self, shortened_url):
+        """ get a full url from a shorted url, for redirection """
         a_url = self.session.query(Url).filter_by(shortened_url=shortened_url
                                                         ).first()
         if a_url:

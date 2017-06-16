@@ -9,6 +9,9 @@ class HashError(Exception):
 
 
 def shorten_url_safe(full_url, shorten_len):
+    """Hashes a full_url to a web-safe shortened url of length
+    shorten_len
+    """
     
     url_hash = hashlib.md5(full_url.encode('utf-8')).digest()
     shorten_url = base64.urlsafe_b64encode(url_hash).decode('utf-8')
@@ -18,6 +21,14 @@ def shorten_url_safe(full_url, shorten_len):
 
 
 def shorten_url(full_url, shorten_len, max_len, datastore):
+    """Returns a web-safe hash from a full_url. Stores the url
+    in the database. 
+    
+    If there is a hash clash it generates a longer hash.
+    
+    Raises a HashError if it cannot build a hash. This should be
+    unlikely for reasonable values of shorten_len and max_len."""
+
     # look up full url in db. If present, return shortened url
     short_url = datastore.shortened_url_from_full_url(full_url)
     if short_url:
