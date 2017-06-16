@@ -58,12 +58,16 @@ class ShortenUrl(Resource):
 
     def post(self):
         full_url = self.parser.parse_args()['url']
-        print(full_url)
+        if not full_url:
+            message = ("Please provide a url to be shortened, in the field "
+                       "'url'")
+            return message, status.HTTP_400_BAD_REQUEST
         if validators.url(full_url):
             shortened_url = shorten_url(full_url, 
                                     self.shorten_len, self.max_len, self.datastore)
             return { 'shortened_url': self.service_base + shortened_url }
         else:
-            message = ('Invalid url provided. Requires scheme ("http://", '
-                       '"https://", etc) and no trailing /')
+            message = ("Invalid url provided. Requires scheme ('http://', "
+                       "'https://', etc) at the start and a '.<something>' "
+                       "too")
             return message, status.HTTP_400_BAD_REQUEST
