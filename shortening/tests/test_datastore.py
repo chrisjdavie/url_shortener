@@ -1,5 +1,6 @@
 
 import unittest
+from unittest.mock import patch
 
 from sqlalchemy import create_engine
 
@@ -21,8 +22,8 @@ class TestCaseWithDb(unittest.TestCase):
         
         self.mock_db.__exit__(None, None, None)
         self.engine.dispose()
-
-
+    
+    
 class TestDatabaseDatastore(TestCaseWithDb):
 
     def test_init_enter(self):

@@ -3,8 +3,9 @@ import unittest
 from unittest.mock import patch
 
 import shortening
+from shortening.datastore import DuplicateUrlError
 from shortening.shorten_string import shorten_url_safe, shorten_url, \
-    CacheError
+    HashError
 from shortening.tests.test_datastore import TestCaseWithDb
 
 class TestShortenURLSafe(unittest.TestCase):
@@ -34,6 +35,26 @@ class TestShortenURLSafe(unittest.TestCase):
 
 def return_len_str(full_url, shorten_len):
     return 'a'*shorten_len
+
+
+def set_simulate_race_condition(*args):
+    # in the case of a race condition, set will complain that
+    # it has been populated
+    raise DuplicateUrlError("")
+
+SHORTENED = "clash"
+not_run = True
+
+def get_simulate_race_condition(*args):
+    global not_run
+    if not_run:
+        # The db is empty at first, so will yield nothing.
+        not_run = False
+        return
+    # db has been populated, so returns the hash value
+    not_run = True
+    return SHORTENED
+    
 
 
 class TestShortenUrl(TestCaseWithDb):
@@ -83,7 +104,19 @@ class TestShortenUrl(TestCaseWithDb):
         max_len = 12
         shorten_url(full_url0, short_len, max_len, self.mock_db)
         
-        self.assertRaises(CacheError, 
+        self.assertRaises(HashError, 
                           shorten_url, 
                           full_url1, short_len, max_len, self.mock_db)
+
+    
+    def test_race_condition(self):
+        
+        self.mock_db.shortened_url_from_full_url = get_simulate_race_condition
+        self.mock_db.set_url = set_simulate_race_condition
+        
+        full_url = "foo"
+        
+        shortened_url = shorten_url(full_url, 12, 20, self.mock_db)
+        
+        self.assertEqual(shortened_url, SHORTENED)
 

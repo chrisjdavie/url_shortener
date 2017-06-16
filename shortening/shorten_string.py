@@ -4,7 +4,7 @@ import hashlib
 from shortening.datastore import DuplicateUrlError
 
 
-class CacheError(Exception):
+class HashError(Exception):
     pass
 
 
@@ -19,11 +19,10 @@ def shorten_url_safe(full_url, shorten_len):
 
 def shorten_url(full_url, shorten_len, max_len, datastore):
     # look up full url in db. If present, return shortened url
-    existing = datastore.shortened_url_from_full_url(full_url)
-    if existing:
-        return existing
+    short_url = datastore.shortened_url_from_full_url(full_url)
+    if short_url:
+        return short_url
     
-    short_url = None
     for url_len in range(shorten_len, max_len + 1):
         short_url = shorten_url_safe(full_url, url_len)
         
@@ -31,10 +30,14 @@ def shorten_url(full_url, shorten_len, max_len, datastore):
             datastore.set_url(short_url, full_url)
             break
         except DuplicateUrlError:
-            pass
-
+            # testing race condition
+            short_url = datastore.shortened_url_from_full_url(full_url)
+            if short_url:
+                break
+            # otherwise, it was a hash collision, 
+            # continue generating a new hash
     else:
-        raise CacheError("No unshortened URL can be produced that isnt already "
+        raise HashError("No unshortened URL can be produced that isnt already "
            "used. It may be that the length of the maximum cache {} is too "
            "short.".format(max_len))
 
