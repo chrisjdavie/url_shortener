@@ -71,3 +71,8 @@ This set up ought to work, using a relational database interface as a key-value 
 
 I've not written anything like this before, so I'm not sure how sensible the whole solution is, I'd have to do quite a bit of load testing on it before I was happy with it. It should work though.
 
+
+## Comments on the hash function
+
+The minimum length of the shorten part of the url is 12 by default - that should work for ~1billion urls `(sqrt(32**12))`. The also handles hash collisions at the time it decides the shortening url, and should be able to handle a lot more, up to ~`(sqrt(32**20))`.
+
